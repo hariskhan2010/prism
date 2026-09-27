@@ -1,0 +1,12 @@
+node_modules/
+# Sites Prism builds live here; each is its own project
+workspace/projects/
+# Prism's private notes about its user
+workspace/MEMORY.md
+# Third-party design skills are installed separately (see README), not redistributed
+workspace/skills/*
+!workspace/skills/lightswind-designer/
+# OpenClaw fills these with notes about you and your machine
+workspace/USER.md
+workspace/TOOLS.md
+workspace/.openclaw/
