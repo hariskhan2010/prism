@@ -56,7 +56,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
+  resolve: { alias: { "@": path.resolve(import.meta.dirname, "./src") } },
 });
 `);
 
@@ -128,7 +128,7 @@ if (theme === "mono") css = css.replace(/(\.dark\s*{[^}]*--primarylw:\s*)#[0-9a-
 fs.writeFileSync(path.join(root, "src/lightswind.css"), css);
 
 write("src/index.css", `
-@import "tailwindcss";
+@import "tailwindcss" source("./"); /* scan only src/, not a parent git repo */
 @import "./lightswind.css";
 @plugin "lightswind/plugin";
 

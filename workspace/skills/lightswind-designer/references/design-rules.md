@@ -40,6 +40,8 @@ opposite: **one memorable moment, everything else calm and legible.**
   fit the subject. Always set `alt`, and give image boxes a fixed aspect ratio.
 - **Mobile:** every multi-column layout collapses to one column. Horizontal carousels scroll inside
   their own container and never widen the page. Hero text must fit at 390px.
+- **Visible at rest:** scroll reveals animate position (`y`), never start from `opacity: 0`. Content must be
+  readable even if the reveal never fires (slow devices, thumbnails, previews).
 - **Motion:** respect `prefers-reduced-motion` (already in `index.css`). Nothing animates on loop in
   a spot where people have to read.
 

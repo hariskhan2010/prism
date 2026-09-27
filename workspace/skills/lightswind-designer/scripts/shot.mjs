@@ -165,14 +165,16 @@ for (const vp of [
     const hidden = [];
     for (const el of document.querySelectorAll("body *")) {
       const r = el.getBoundingClientRect();
-      if (r.width < 120 || r.height < 80 || el.closest("[aria-hidden=true]")) continue;
+      // data-scroll-linked marks elements whose opacity is tied to scroll position (e.g. a sticky
+      // storytelling headline): transparent at the top of the page by design, not a failed reveal.
+      if (r.width < 120 || r.height < 80 || el.closest("[aria-hidden=true],[data-scroll-linked]")) continue;
       if (parseFloat(getComputedStyle(el).opacity) < 0.05 && !(el.parentElement && parseFloat(getComputedStyle(el.parentElement).opacity) < 0.05))
         hidden.push(el.tagName.toLowerCase() + ' "' + (el.textContent || "").trim().slice(0, 28) + '" @y=' + Math.round(r.top + scrollY));
       if (hidden.length > 5) break;
     }
     return { scrollWidth: document.documentElement.scrollWidth, vw, wide, hidden };
   })()`);
-  const fullHeight = Math.min(height, 12000);
+  const fullHeight = Math.min(height, 24000);
   // Full shots render at 1x (clip scale 1/DPR): at 2x a tall page exceeds the renderer's max
   // texture size (~8192px in software mode) and the image wraps around and repeats.
   // Chrome also tiles content when captureBeyondViewport runs under mobile emulation.
@@ -181,8 +183,13 @@ for (const vp of [
     await cmd("Emulation.setDeviceMetricsOverride", { width: vp.width, height: vp.height, deviceScaleFactor: vp.scale, mobile: false });
     await sleep(400);
   }
-  await save(`${vp.name}-full`, { captureBeyondViewport: true, clip: { x: 0, y: 0, width: vp.width, height: fullHeight, scale: 1 / vp.scale } });
-  report.push(`${vp.name}: page ${height}px tall${height > 12000 ? " (full shot truncated at 12000px)" : ""}` +
+  // Capture in 7000px slices: one image taller than the renderer's max texture (~8192px) wraps around.
+  const SLICE = 7000;
+  for (let y = 0, part = 1; y < fullHeight; y += SLICE, part++) {
+    const name = part === 1 ? `${vp.name}-full` : `${vp.name}-full-${part}`;
+    await save(name, { captureBeyondViewport: true, clip: { x: 0, y, width: vp.width, height: Math.min(SLICE, fullHeight - y), scale: 1 / vp.scale } });
+  }
+  report.push(`${vp.name}: page ${height}px tall${height > 24000 ? " (full shots stop at 24000px)" : ""}${height > 7000 ? ` (full page split into ${Math.ceil(Math.min(height, 24000) / 7000)} slices)` : ""}` +
     (overflow.scrollWidth > overflow.vw ? `; ⚠️ HORIZONTAL OVERFLOW ${overflow.scrollWidth - overflow.vw}px (elements: ${overflow.wide.join(" | ")})` : "; no horizontal overflow") +
     (overflow.hidden.length ? `\n  ⚠️ INVISIBLE after scrolling (reveal never fired?): ${overflow.hidden.join(" | ")}` : ""));
 }
